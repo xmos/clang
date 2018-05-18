@@ -162,6 +162,7 @@ public:
     CUDA,
     RenderScript,
     HIP,
+    XC,
     ///@}
   };
 
@@ -185,6 +186,8 @@ public:
 
   /// Is the language of the input some dialect of Objective-C?
   bool isObjectiveC() const { return Lang == ObjC || Lang == ObjCXX; }
+
+  bool isXC() const { return Lang == XC; }
 
   InputKind getPreprocessed() const {
     return InputKind(getLanguage(), getFormat(), true);

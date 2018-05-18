@@ -214,6 +214,11 @@ PUNCTUATOR(hash,                "#")
 PUNCTUATOR(hashhash,            "##")
 PUNCTUATOR(hashat,              "#@")
 
+// XC Support
+PUNCTUATOR(xread,               ":>")
+PUNCTUATOR(xwrite,              "<:")
+PUNCTUATOR(xcase_guard,         "=>")
+
 // C++ Support
 PUNCTUATOR(periodstar,          ".*")
 PUNCTUATOR(arrowstar,           "->*")
@@ -311,6 +316,18 @@ KEYWORD(_Thread_local               , KEYALL)
 KEYWORD(__func__                    , KEYALL)
 KEYWORD(__objc_yes                  , KEYALL)
 KEYWORD(__objc_no                   , KEYALL)
+
+// XC Keywords
+KEYWORD(par                         , KEYALL)
+KEYWORD(select                      , KEYALL)
+KEYWORD(chan                        , KEYALL)
+KEYWORD(chanend                     , KEYALL)
+KEYWORD(unsafe                      , KEYALL)
+KEYWORD(interface                   , KEYALL)
+KEYWORD(client                      , KEYALL)
+KEYWORD(server                      , KEYALL)
+KEYWORD(port                        , KEYALL)
+KEYWORD(clock                       , KEYALL)
 
 
 // C++ 2.11p1: Keywords.

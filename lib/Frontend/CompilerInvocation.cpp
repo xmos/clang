@@ -1858,6 +1858,8 @@ void CompilerInvocation::setLangDefaults(LangOptions &Opts, InputKind IK,
     Opts.AsmPreprocessor = 1;
   } else if (IK.isObjectiveC()) {
     Opts.ObjC1 = Opts.ObjC2 = 1;
+  } else if (IK.isXC()) {
+    Opts.XC = 1;
   }
 
   if (LangStd == LangStandard::lang_unspecified) {

@@ -383,6 +383,10 @@ BINARY_OPERATION(OrAssign, "|=")
 // [C99 6.5.17] Comma operator.
 BINARY_OPERATION(Comma, ",")
 
+// XC Binary Operators
+BINARY_OPERATION(Read, ":>")
+BINARY_OPERATION(Write, "<:")
+
 
 //===- Unary Operations ---------------------------------------------------===//
 // Note that additions to this should also update the StmtVisitor class and

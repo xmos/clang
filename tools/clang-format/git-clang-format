@@ -85,6 +85,7 @@ def main():
       'java',  # Java
       'js',  # JavaScript
       'ts',  # TypeScript
+      'xc',  # XC
       ])
 
   p = argparse.ArgumentParser(

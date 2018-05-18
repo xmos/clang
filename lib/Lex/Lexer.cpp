@@ -3601,7 +3601,10 @@ LexNextToken:
     break;
   case '<':
     Char = getCharAndSize(CurPtr, SizeTmp);
-    if (ParsingFilename) {
+    if (LangOpts.XC && Char == ':') {
+      Kind = tok::xwrite;
+      CurPtr = ConsumeChar(CurPtr, SizeTmp, Result);
+    } else if (ParsingFilename) {
       return LexAngledStringLiteral(Result, CurPtr);
     } else if (Char == '<') {
       char After = getCharAndSize(CurPtr+SizeTmp, SizeTmp2);
@@ -3735,7 +3738,10 @@ LexNextToken:
     break;
   case ':':
     Char = getCharAndSize(CurPtr, SizeTmp);
-    if (LangOpts.Digraphs && Char == '>') {
+    if (LangOpts.XC && Char == '>') {
+      Kind = tok::xread;
+      CurPtr = ConsumeChar(CurPtr, SizeTmp, Result);
+    } else if (LangOpts.Digraphs && Char == '>') {
       Kind = tok::r_square; // ':>' -> ']'
       CurPtr = ConsumeChar(CurPtr, SizeTmp, Result);
     } else if ((LangOpts.CPlusPlus ||
@@ -3752,7 +3758,10 @@ LexNextToken:
     break;
   case '=':
     Char = getCharAndSize(CurPtr, SizeTmp);
-    if (Char == '=') {
+    if (LangOpts.XC && Char == '>') {
+      Kind = tok::xcase_guard;
+      CurPtr = ConsumeChar(CurPtr, SizeTmp, Result);
+    } else if (Char == '=') {
       // If this is '====' and we're in a conflict marker, ignore it.
       if (CurPtr[1] == '=' && HandleEndOfConflictMarker(CurPtr-1))
         goto LexNextToken;

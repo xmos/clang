@@ -45,7 +45,7 @@ def main():
                       '(case sensitive, overrides -iregex)')
   parser.add_argument('-iregex', metavar='PATTERN', default=
                       r'.*\.(cpp|cc|c\+\+|cxx|c|cl|h|hpp|m|mm|inc|js|ts|proto'
-                      r'|protodevel|java)',
+                      r'|protodevel|java|xc)',
                       help='custom pattern selecting file paths to reformat '
                       '(case insensitive, overridden by -regex)')
   parser.add_argument('-sort-includes', action='store_true', default=False,
