@@ -1627,6 +1627,7 @@ static InputKind ParseFrontendArgs(FrontendOptions &Opts, ArgList &Args,
                 .Case("objective-c", InputKind::ObjC)
                 .Case("objective-c++", InputKind::ObjCXX)
                 .Case("renderscript", InputKind::RenderScript)
+                .Case("xc", InputKind::XC)
                 .Default(InputKind::Unknown);
 
     // "objc[++]-cpp-output" is an acceptable synonym for
@@ -1868,6 +1869,9 @@ void CompilerInvocation::setLangDefaults(LangOptions &Opts, InputKind IK,
     case InputKind::Unknown:
     case InputKind::LLVM_IR:
       llvm_unreachable("Invalid input kind!");
+    case InputKind::XC:
+      LangStd = LangStandard::lang_xc;
+      break;
     case InputKind::OpenCL:
       LangStd = LangStandard::lang_opencl10;
       break;
@@ -2029,6 +2033,8 @@ static bool IsInputCompatibleWithStandard(InputKind IK,
   case InputKind::HIP:
     return S.getLanguage() == InputKind::CXX ||
            S.getLanguage() == InputKind::HIP;
+  case InputKind::XC:
+    return S.getLanguage() == InputKind::XC;
 
   case InputKind::Asm:
     // Accept (and ignore) all -std= values.
@@ -2064,6 +2070,9 @@ static const StringRef GetInputKindName(InputKind IK) {
     return "Asm";
   case InputKind::LLVM_IR:
     return "LLVM IR";
+
+  case InputKind::XC:
+    return "XMOS XC";
 
   case InputKind::Unknown:
     break;
