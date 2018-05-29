@@ -1786,6 +1786,9 @@ private:
                                  AllowedConstructsKind Allowed,
                                  SourceLocation *TrailingElseLoc,
                                  ParsedAttributesWithRange &Attrs);
+  StmtResult ParseXCParStatement();
+  StmtResult ParseXCParStatementBody(size_t & StatementCount);
+  StmtResult ParseXCParStatementTask(size_t & StatementCount);
 
   /// Describes the behavior that should be taken for an __if_exists
   /// block.
