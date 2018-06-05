@@ -33,4 +33,11 @@ pipeline {
       }
     }
   }
+  post {
+    always {
+      dir("llvm") {
+        deleteDir
+      }
+    }
+  }
 }
