@@ -9,16 +9,25 @@ pipeline {
     stage('Checkout') {
       steps {
         sh 'git clone https://llvm.org/git/llvm.git'
+        dir("llvm") {
+          dir("tools") {
+            dir("clang") {
+              checkout scm
+              dir("tools") {
+                sh 'git clone https://llvm.org/git/clang-tools-extra.git extra'
+              }
+            }
+          }
+        }
       }
     }
     stage('Build') {
       steps {
         sh 'find .'
         dir("llvm") {
-          sh 'mkdir bin'
           dir("bin") {
             sh 'cmake ..'
-            sh 'make'
+            sh 'make clang-format clang-tidy clangd'
           }
         }
       }
