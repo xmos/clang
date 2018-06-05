@@ -27,7 +27,16 @@ pipeline {
         dir("llvm") {
           dir("bin") {
             sh 'cmake ..'
-            sh 'make clang-format clang-tidy clangd'
+            sh 'make clang-format'
+          }
+        }
+      }
+    }
+    stage('Archive') {
+      steps {
+        dir("llvm") {
+          dir("bin") {
+            archiveArtifacts artifacts: 'clang-format', fingerprint: true
           }
         }
       }
