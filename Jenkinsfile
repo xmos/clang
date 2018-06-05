@@ -36,7 +36,9 @@ pipeline {
       steps {
         dir("llvm") {
           dir("bin") {
-            archiveArtifacts artifacts: 'clang-format', fingerprint: true
+            dir("bin") {
+              archiveArtifacts artifacts: 'clang-format', fingerprint: true
+            }
           }
         }
       }
