@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'some_builder'
+    label 'lib_builder'
   }
   options {
     skipDefaultCheckout()
