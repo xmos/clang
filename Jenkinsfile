@@ -13,7 +13,7 @@ pipeline {
           boxname: 'centos7-tools-next',
           boxurl: 'http://srv-bri-repo0.xmos.local/repos/boxes/builders/tools/centos/7',
           cpuCount: '1',
-          memMB 4096
+          memMB: '4096'
         ) {
           sh """git clone https://llvm.org/git/llvm.git"""
           dir("llvm") {
