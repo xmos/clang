@@ -27,7 +27,7 @@ pipeline {
         dir("llvm") {
           dir("bin") {
             sh 'cmake ..'
-            sh 'make clang-format'
+            sh 'make clang-format -j'
           }
         }
       }
