@@ -23,6 +23,7 @@ pipeline {
     }
     stage('Build') {
       steps {
+        sh 'find .'
         dir("llvm") {
           sh 'mkdir bin'
           dir("bin") {
