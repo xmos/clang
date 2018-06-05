@@ -6,6 +6,11 @@ pipeline {
     skipDefaultCheckout()
   }
   stages {
+    stage('Test') {
+      steps {
+        sh 'git diff $GIT_PREVIOUS_COMMIT $GIT_COMMIT'
+      }
+    }
     stage('Checkout') {
       steps {
         sh 'git clone https://llvm.org/git/llvm.git'
