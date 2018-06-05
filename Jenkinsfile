@@ -23,8 +23,6 @@ pipeline {
     }
     stage('Build') {
     }
-    // stage('Test') {
-    // }
   }
   post {
   }
