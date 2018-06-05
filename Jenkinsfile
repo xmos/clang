@@ -23,9 +23,5 @@ pipeline {
         }
       }
     }
-    stage('Build') {
-    }
-  }
-  post {
   }
 }
