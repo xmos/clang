@@ -2,8 +2,6 @@ pipeline {
   agent {
     label 'some_builder'
   }
-  environment {
-  }
   options {
     skipDefaultCheckout()
   }
