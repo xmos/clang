@@ -19,5 +19,16 @@ pipeline {
         }
       }
     }
+    stage('Build') {
+      steps {
+        dir("llvm") {
+          sh """mkdir bin"""
+          dir("bin") {
+            sh """cmake .."""
+            sh """make"""
+          }
+        }
+      }
+    }
   }
 }
