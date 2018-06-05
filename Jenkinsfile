@@ -23,7 +23,6 @@ pipeline {
     }
     stage('Build') {
       steps {
-        sh 'find .'
         dir("llvm") {
           dir("bin") {
             sh 'cmake ..'
@@ -38,6 +37,15 @@ pipeline {
           dir("bin") {
             dir("bin") {
               archiveArtifacts artifacts: 'clang-format', fingerprint: true
+            }
+          }
+          dir("tools") {
+            dir("clang") {
+              dir("tools") {
+                dir("clang-format") {
+                  archiveArtifacts artifacts: 'clang-format-diff.py', fingerprint: true
+                }
+              }
             }
           }
         }
