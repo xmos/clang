@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent {
+    label 'lib_builder'
+  }
   options {
     skipDefaultCheckout()
   }
