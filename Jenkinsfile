@@ -25,7 +25,7 @@ pipeline {
           sh """mkdir bin"""
           dir("bin") {
             sh """cmake .."""
-            sh """make"""
+            sh """make clang-format clang-tidy clangd"""
           }
         }
       }
