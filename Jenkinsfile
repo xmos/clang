@@ -5,6 +5,9 @@ pipeline {
   options {
     skipDefaultCheckout()
   }
+  triggers {
+    cron('H 23 * * *')
+  }
   stages {
     stage('Checkout') {
       steps {
