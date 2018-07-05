@@ -2098,7 +2098,7 @@ LangOptions getFormattingLangOpts(const FormatStyle &Style) {
   LangOpts.ObjC2 = 1;
   LangOpts.MicrosoftExt = 1;    // To get kw___try, kw___finally.
   LangOpts.DeclSpecKeyword = 1; // To get __declspec.
-  LangOpts.XC = 1;
+  LangOpts.XC = Style.isXC();
   return LangOpts;
 }
 
@@ -2130,6 +2130,8 @@ static FormatStyle::LanguageKind getLanguageByFileName(StringRef FileName) {
     return FormatStyle::LK_TextProto;
   if (FileName.endswith_lower(".td"))
     return FormatStyle::LK_TableGen;
+  if (FileName.endswith_lower(".xc"))
+    return FormatStyle::LK_XC;
   return FormatStyle::LK_Cpp;
 }
 

@@ -734,6 +734,7 @@ void PrintPreambleAction::ExecuteAction() {
   case InputKind::OpenCL:
   case InputKind::CUDA:
   case InputKind::HIP:
+  case InputKind::XC:
     break;
       
   case InputKind::Unknown:

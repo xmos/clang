@@ -106,6 +106,8 @@ public:
   /// isOpenCL - Language is a OpenCL variant.
   bool isOpenCL() const { return Flags & frontend::OpenCL; }
 
+  bool isXC() const { return Flags & frontend::XC; }
+
   static const LangStandard &getLangStandardForKind(Kind K);
   static const LangStandard *getLangStandardForName(StringRef Name);
 };

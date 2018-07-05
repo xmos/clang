@@ -1193,9 +1193,12 @@ struct FormatStyle {
     LK_TableGen,
     /// Should be used for Protocol Buffer messages in text format
     /// (https://developers.google.com/protocol-buffers/).
-    LK_TextProto
+    LK_TextProto,
+    ///
+    LK_XC
   };
   bool isCpp() const { return Language == LK_Cpp || Language == LK_ObjC; }
+  bool isXC() const { return Language == LK_XC; }
 
   /// Language, this format style is targeted at.
   LanguageKind Language;
@@ -2020,6 +2023,8 @@ inline StringRef getLanguageName(FormatStyle::LanguageKind Language) {
     return "Proto";
   case FormatStyle::LK_TextProto:
     return "TextProto";
+  case FormatStyle::LK_XC:
+    return "XC";
   default:
     return "Unknown";
   }
