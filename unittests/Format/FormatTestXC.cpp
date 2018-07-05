@@ -56,6 +56,11 @@ protected:
   }
 };
 
+TEST_F(FormatTestXC, FixPoint) {
+  llvm::StringRef Code = "par{f();g();}";
+  EXPECT_EQ(format(format(Code)), format(format(format(Code))));
+}
+
 TEST_F(FormatTestXC, Write) {
   EXPECT_EQ("c <: 4;", format("c<:4;"));
 }
@@ -74,10 +79,11 @@ TEST_F(FormatTestXC, Par) {
   );
 
   EXPECT_EQ(
-    "par (int i = 0; i < 16; ++i) {\n"
+    "par(int i = 0; i < 16; ++i) {\n"
     "  f(i);\n"
+    "  g(i);\n"
     "}\n",
-    format("par (int i = 0; i < 16; ++i) {f(i);}\n")
+    format("par (int i = 0; i < 16; ++i) {f(i);g(i);}\n")
   );
 }
 }
