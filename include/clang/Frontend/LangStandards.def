@@ -35,6 +35,9 @@
 #define LANGSTANDARD_ALIAS_DEPR(IDENT, ALIAS) LANGSTANDARD_ALIAS(IDENT, ALIAS)
 #endif
 
+// XC
+LANGSTANDARD(xc, "xc", XC, "XMOS XC", XC)
+
 // C89-ish modes.
 LANGSTANDARD(c89, "c89",
              C, "ISO C 1990",

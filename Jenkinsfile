@@ -29,9 +29,14 @@ pipeline {
         dir("llvm") {
           dir("bin") {
             sh 'cmake ..'
-            sh 'make clang-format -j'
+            sh 'make clang-format FormatTests -j'
           }
         }
+      }
+    }
+    stage('Test') {
+      steps {
+        sh './llvm/bin/tools/clang/unittests/Format/FormatTests'
       }
     }
     stage('Archive') {
