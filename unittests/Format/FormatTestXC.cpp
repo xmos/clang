@@ -56,8 +56,29 @@ protected:
   }
 };
 
-TEST_F(FormatTestXC, FormatsUnwrappedLinesAtFirstFormat) {
-  EXPECT_EQ("int i;", format("int\ni;"));
+TEST_F(FormatTestXC, Write) {
+  EXPECT_EQ("c <: 4;", format("c<:4;"));
+}
+
+TEST_F(FormatTestXC, Read) {
+  EXPECT_EQ("c :> 4;", format("c:>4;"));
+}
+
+TEST_F(FormatTestXC, Par) {
+  EXPECT_EQ(
+    "par {\n"
+    "  f();\n"
+    "  g();\n"
+    "}\n",
+    format("par{f();g();}\n")
+  );
+
+  EXPECT_EQ(
+    "par (int i = 0; i < 16; ++i) {\n"
+    "  f(i);\n"
+    "}\n",
+    format("par (int i = 0; i < 16; ++i) {f(i);}\n")
+  );
 }
 }
 }
