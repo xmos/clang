@@ -1934,6 +1934,24 @@ void MicrosoftCXXNameMangler::mangleType(const BuiltinType *T, Qualifiers,
   case BuiltinType::UShortAccum:
   case BuiltinType::UAccum:
   case BuiltinType::ULongAccum:
+  case BuiltinType::ShortFract:
+  case BuiltinType::Fract:
+  case BuiltinType::LongFract:
+  case BuiltinType::UShortFract:
+  case BuiltinType::UFract:
+  case BuiltinType::ULongFract:
+  case BuiltinType::SatShortAccum:
+  case BuiltinType::SatAccum:
+  case BuiltinType::SatLongAccum:
+  case BuiltinType::SatUShortAccum:
+  case BuiltinType::SatUAccum:
+  case BuiltinType::SatULongAccum:
+  case BuiltinType::SatShortFract:
+  case BuiltinType::SatFract:
+  case BuiltinType::SatLongFract:
+  case BuiltinType::SatUShortFract:
+  case BuiltinType::SatUFract:
+  case BuiltinType::SatULongFract:
   case BuiltinType::Char8:
   case BuiltinType::Float128: {
     DiagnosticsEngine &Diags = Context.getDiags();
@@ -3146,9 +3164,9 @@ MicrosoftMangleContextImpl::mangleDynamicAtExitDestructor(const VarDecl *D,
 
 void MicrosoftMangleContextImpl::mangleStringLiteral(const StringLiteral *SL,
                                                      raw_ostream &Out) {
-  // <char-type> ::= 0   # char
-  //             ::= 1   # wchar_t
-  //             ::= ??? # char16_t/char32_t will need a mangling too...
+  // <char-type> ::= 0   # char, char16_t, char32_t
+  //                     # (little endian char data in mangling)
+  //             ::= 1   # wchar_t (big endian char data in mangling)
   //
   // <literal-length> ::= <non-negative integer>  # the length of the literal
   //
@@ -3210,8 +3228,8 @@ void MicrosoftMangleContextImpl::mangleStringLiteral(const StringLiteral *SL,
   // scheme.
   Mangler.mangleNumber(JC.getCRC());
 
-  // <encoded-string>: The mangled name also contains the first 32 _characters_
-  // (including null-terminator bytes) of the StringLiteral.
+  // <encoded-string>: The mangled name also contains the first 32 bytes
+  // (including null-terminator bytes) of the encoded StringLiteral.
   // Each character is encoded by splitting them into bytes and then encoding
   // the constituent bytes.
   auto MangleByte = [&Mangler](char Byte) {
@@ -3240,17 +3258,17 @@ void MicrosoftMangleContextImpl::mangleStringLiteral(const StringLiteral *SL,
     }
   };
 
-  // Enforce our 32 character max.
-  unsigned NumCharsToMangle = std::min(32U, SL->getLength());
-  for (unsigned I = 0, E = NumCharsToMangle * SL->getCharByteWidth(); I != E;
-       ++I)
+  // Enforce our 32 bytes max, except wchar_t which gets 32 chars instead.
+  unsigned MaxBytesToMangle = SL->isWide() ? 64U : 32U;
+  unsigned NumBytesToMangle = std::min(MaxBytesToMangle, SL->getByteLength());
+  for (unsigned I = 0; I != NumBytesToMangle; ++I)
     if (SL->isWide())
       MangleByte(GetBigEndianByte(I));
     else
       MangleByte(GetLittleEndianByte(I));
 
   // Encode the NUL terminator if there is room.
-  if (NumCharsToMangle < 32)
+  if (NumBytesToMangle < MaxBytesToMangle)
     for (unsigned NullTerminator = 0; NullTerminator < SL->getCharByteWidth();
          ++NullTerminator)
       MangleByte(0);
