@@ -45,8 +45,9 @@ class LangOptions;
 class NamedDecl;
 class NestedNameSpecifier;
 class Preprocessor;
-class Sema;
 class RawComment;
+class Sema;
+class UsingShadowDecl;
 
 /// Default priority values for code-completion results based
 /// on their kind.
@@ -836,6 +837,12 @@ public:
   /// informative rather than required.
   NestedNameSpecifier *Qualifier = nullptr;
 
+  /// If this Decl was unshadowed by using declaration, this can store a
+  /// pointer to the UsingShadowDecl which was used in the unshadowing process.
+  /// This information can be used to uprank CodeCompletionResults / which have
+  /// corresponding `using decl::qualified::name;` nearby.
+  const UsingShadowDecl *ShadowDecl = nullptr;
+
   /// Build a result that refers to a declaration.
   CodeCompletionResult(const NamedDecl *Declaration, unsigned Priority,
                        NestedNameSpecifier *Qualifier = nullptr,
@@ -847,7 +854,7 @@ public:
         QualifierIsInformative(QualifierIsInformative),
         StartsNestedNameSpecifier(false), AllParametersAreInformative(false),
         DeclaringEntity(false), Qualifier(Qualifier) {
-    //FIXME: Add assert to check FixIts range requirements.
+    // FIXME: Add assert to check FixIts range requirements.
     computeCursorKindAndAvailability(Accessible);
   }
 
@@ -888,9 +895,11 @@ public:
     computeCursorKindAndAvailability();
   }
 
-  /// Retrieve the declaration stored in this result.
+  /// Retrieve the declaration stored in this result. This might be nullptr if
+  /// Kind is RK_Pattern.
   const NamedDecl *getDeclaration() const {
-    assert(Kind == RK_Declaration && "Not a declaration result");
+    assert(((Kind == RK_Declaration) || (Kind == RK_Pattern)) &&
+           "Not a declaration or pattern result");
     return Declaration;
   }
 
@@ -918,6 +927,13 @@ public:
                                            CodeCompletionAllocator &Allocator,
                                            CodeCompletionTUInfo &CCTUInfo,
                                            bool IncludeBriefComments);
+  /// Creates a new code-completion string for the macro result. Similar to the
+  /// above overloads, except this only requires preprocessor information.
+  /// The result kind must be `RK_Macro`.
+  CodeCompletionString *
+  CreateCodeCompletionStringForMacro(Preprocessor &PP,
+                                     CodeCompletionAllocator &Allocator,
+                                     CodeCompletionTUInfo &CCTUInfo);
 
   /// Retrieve the name that should be used to order a result.
   ///

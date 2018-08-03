@@ -859,12 +859,12 @@ void ResultBuilder::MaybeAddResult(Result R, DeclContext *CurContext) {
   }
 
   // Look through using declarations.
-  if (const UsingShadowDecl *Using =
-          dyn_cast<UsingShadowDecl>(R.Declaration)) {
-    MaybeAddResult(Result(Using->getTargetDecl(),
-                          getBasePriority(Using->getTargetDecl()),
-                          R.Qualifier),
-                   CurContext);
+  if (const UsingShadowDecl *Using = dyn_cast<UsingShadowDecl>(R.Declaration)) {
+    CodeCompletionResult Result(Using->getTargetDecl(),
+                                getBasePriority(Using->getTargetDecl()),
+                                R.Qualifier);
+    Result.ShadowDecl = Using;
+    MaybeAddResult(Result, CurContext);
     return;
   }
 
@@ -977,10 +977,11 @@ void ResultBuilder::AddResult(Result R, DeclContext *CurContext,
 
   // Look through using declarations.
   if (const UsingShadowDecl *Using = dyn_cast<UsingShadowDecl>(R.Declaration)) {
-    AddResult(Result(Using->getTargetDecl(),
-                     getBasePriority(Using->getTargetDecl()),
-                     R.Qualifier),
-              CurContext, Hiding);
+    CodeCompletionResult Result(Using->getTargetDecl(),
+                                getBasePriority(Using->getTargetDecl()),
+                                R.Qualifier);
+    Result.ShadowDecl = Using;
+    AddResult(Result, CurContext, Hiding);
     return;
   }
 
@@ -1004,10 +1005,10 @@ void ResultBuilder::AddResult(Result R, DeclContext *CurContext,
   if (AsNestedNameSpecifier) {
     R.StartsNestedNameSpecifier = true;
     R.Priority = CCP_NestedNameSpecifier;
-  }
-  else if (Filter == &ResultBuilder::IsMember && !R.Qualifier && InBaseClass &&
-           isa<CXXRecordDecl>(R.Declaration->getDeclContext()
-                                                  ->getRedeclContext()))
+  } else if (Filter == &ResultBuilder::IsMember && !R.Qualifier &&
+             InBaseClass &&
+             isa<CXXRecordDecl>(
+                 R.Declaration->getDeclContext()->getRedeclContext()))
     R.QualifierIsInformative = true;
 
   // If this result is supposed to have an informative qualifier, add one.
@@ -1304,7 +1305,6 @@ namespace {
       bool Accessible = true;
       if (Ctx)
         Accessible = Results.getSema().IsSimplyAccessible(ND, Ctx);
-
       ResultBuilder::Result Result(ND, Results.getBasePriority(ND), nullptr,
                                    false, Accessible, FixIts);
       Results.AddResult(Result, CurContext, Hiding, InBaseClass);
@@ -2745,6 +2745,52 @@ CodeCompletionString *CodeCompletionResult::CreateCodeCompletionString(Sema &S,
                                     CCTUInfo, IncludeBriefComments);
 }
 
+CodeCompletionString *CodeCompletionResult::CreateCodeCompletionStringForMacro(
+    Preprocessor &PP, CodeCompletionAllocator &Allocator,
+    CodeCompletionTUInfo &CCTUInfo) {
+  assert(Kind == RK_Macro);
+  CodeCompletionBuilder Result(Allocator, CCTUInfo, Priority, Availability);
+  const MacroInfo *MI = PP.getMacroInfo(Macro);
+  Result.AddTypedTextChunk(Result.getAllocator().CopyString(Macro->getName()));
+
+  if (!MI || !MI->isFunctionLike())
+    return Result.TakeString();
+
+  // Format a function-like macro with placeholders for the arguments.
+  Result.AddChunk(CodeCompletionString::CK_LeftParen);
+  MacroInfo::param_iterator A = MI->param_begin(), AEnd = MI->param_end();
+
+  // C99 variadic macros add __VA_ARGS__ at the end. Skip it.
+  if (MI->isC99Varargs()) {
+    --AEnd;
+
+    if (A == AEnd) {
+      Result.AddPlaceholderChunk("...");
+    }
+  }
+
+  for (MacroInfo::param_iterator A = MI->param_begin(); A != AEnd; ++A) {
+    if (A != MI->param_begin())
+      Result.AddChunk(CodeCompletionString::CK_Comma);
+
+    if (MI->isVariadic() && (A + 1) == AEnd) {
+      SmallString<32> Arg = (*A)->getName();
+      if (MI->isC99Varargs())
+        Arg += ", ...";
+      else
+        Arg += "...";
+      Result.AddPlaceholderChunk(Result.getAllocator().CopyString(Arg));
+      break;
+    }
+
+    // Non-variadic macros are simple.
+    Result.AddPlaceholderChunk(
+        Result.getAllocator().CopyString((*A)->getName()));
+  }
+  Result.AddChunk(CodeCompletionString::CK_RightParen);
+  return Result.TakeString();
+}
+
 /// If possible, create a new code completion string for the given
 /// result.
 ///
@@ -2758,6 +2804,9 @@ CodeCompletionResult::CreateCodeCompletionString(ASTContext &Ctx,
                                            CodeCompletionAllocator &Allocator,
                                            CodeCompletionTUInfo &CCTUInfo,
                                            bool IncludeBriefComments) {
+  if (Kind == RK_Macro)
+    return CreateCodeCompletionStringForMacro(PP, Allocator, CCTUInfo);
+
   CodeCompletionBuilder Result(Allocator, CCTUInfo, Priority, Availability);
 
   PrintingPolicy Policy = getCompletionPrintingPolicy(Ctx, PP);
@@ -2782,50 +2831,6 @@ CodeCompletionResult::CreateCodeCompletionString(ASTContext &Ctx,
     Result.AddTypedTextChunk(Keyword);
     return Result.TakeString();
   }
-
-  if (Kind == RK_Macro) {
-    const MacroInfo *MI = PP.getMacroInfo(Macro);
-    Result.AddTypedTextChunk(
-                            Result.getAllocator().CopyString(Macro->getName()));
-
-    if (!MI || !MI->isFunctionLike())
-      return Result.TakeString();
-
-    // Format a function-like macro with placeholders for the arguments.
-    Result.AddChunk(CodeCompletionString::CK_LeftParen);
-    MacroInfo::param_iterator A = MI->param_begin(), AEnd = MI->param_end();
-
-    // C99 variadic macros add __VA_ARGS__ at the end. Skip it.
-    if (MI->isC99Varargs()) {
-      --AEnd;
-
-      if (A == AEnd) {
-        Result.AddPlaceholderChunk("...");
-      }
-    }
-
-    for (MacroInfo::param_iterator A = MI->param_begin(); A != AEnd; ++A) {
-      if (A != MI->param_begin())
-        Result.AddChunk(CodeCompletionString::CK_Comma);
-
-      if (MI->isVariadic() && (A+1) == AEnd) {
-        SmallString<32> Arg = (*A)->getName();
-        if (MI->isC99Varargs())
-          Arg += ", ...";
-        else
-          Arg += "...";
-        Result.AddPlaceholderChunk(Result.getAllocator().CopyString(Arg));
-        break;
-      }
-
-      // Non-variadic macros are simple.
-      Result.AddPlaceholderChunk(
-                          Result.getAllocator().CopyString((*A)->getName()));
-    }
-    Result.AddChunk(CodeCompletionString::CK_RightParen);
-    return Result.TakeString();
-  }
-
   assert(Kind == RK_Declaration && "Missed a result kind?");
   const NamedDecl *ND = Declaration;
   Result.addParentContext(ND->getDeclContext());
@@ -4285,7 +4290,7 @@ void Sema::CodeCompleteCase(Scope *S) {
   if (getCurFunction()->SwitchStack.empty() || !CodeCompleter)
     return;
 
-  SwitchStmt *Switch = getCurFunction()->SwitchStack.back();
+  SwitchStmt *Switch = getCurFunction()->SwitchStack.back().getPointer();
   QualType type = Switch->getCond()->IgnoreImplicit()->getType();
   if (!type->isEnumeralType()) {
     CodeCompleteExpressionData Data(type);
