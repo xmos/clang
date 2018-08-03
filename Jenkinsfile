@@ -29,7 +29,7 @@ pipeline {
         dir("llvm") {
           dir("bin") {
             sh 'cmake ..'
-            sh 'make clang-format FormatTests -j'
+            sh 'make clang-tidy clang-format FormatTests -j24'
           }
         }
       }
@@ -45,6 +45,7 @@ pipeline {
           dir("bin") {
             dir("bin") {
               archiveArtifacts artifacts: 'clang-format', fingerprint: true
+              archiveArtifacts artifacts: 'clang-tidy', fingerprint: true
             }
           }
           dir("tools") {
