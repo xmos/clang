@@ -1661,17 +1661,28 @@ bool Driver::HandleImmediateArgs(const Compilation &C) {
   }
 
   if (C.getArgs().hasArg(options::OPT_print_multi_directory)) {
-    for (const Multilib &Multilib : TC.getMultilibs()) {
-      if (Multilib.gccSuffix().empty())
-        llvm::outs() << ".\n";
-      else {
-        StringRef Suffix(Multilib.gccSuffix());
-        assert(Suffix.front() == '/');
-        llvm::outs() << Suffix.substr(1) << "\n";
-      }
+    const Multilib &Multilib = TC.getMultilib();
+    if (Multilib.gccSuffix().empty())
+      llvm::outs() << ".\n";
+    else {
+      StringRef Suffix(Multilib.gccSuffix());
+      assert(Suffix.front() == '/');
+      llvm::outs() << Suffix.substr(1) << "\n";
     }
     return false;
   }
+
+  if (C.getArgs().hasArg(options::OPT_print_target_triple)) {
+    llvm::outs() << TC.getTripleString() << "\n";
+    return false;
+  }
+
+  if (C.getArgs().hasArg(options::OPT_print_effective_triple)) {
+    const llvm::Triple Triple(TC.ComputeEffectiveClangTriple(C.getArgs()));
+    llvm::outs() << Triple.getTriple() << "\n";
+    return false;
+  }
+
   return true;
 }
 
@@ -2998,9 +3009,10 @@ void Driver::BuildActions(Compilation &C, DerivedArgList &Args,
     Args.eraseArg(options::OPT__SLASH_Yc);
     YcArg = nullptr;
   }
-  if (Args.hasArg(options::OPT__SLASH_Y_)) {
-    // /Y- disables all pch handling.  Rather than check for it everywhere,
-    // just remove clang-cl pch-related flags here.
+  if (FinalPhase == phases::Preprocess || Args.hasArg(options::OPT__SLASH_Y_)) {
+    // If only preprocessing or /Y- is used, all pch handling is disabled.
+    // Rather than check for it everywhere, just remove clang-cl pch-related
+    // flags here.
     Args.eraseArg(options::OPT__SLASH_Fp);
     Args.eraseArg(options::OPT__SLASH_Yc);
     Args.eraseArg(options::OPT__SLASH_Yu);
