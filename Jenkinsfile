@@ -4,6 +4,7 @@ pipeline {
   }
   options {
     skipDefaultCheckout()
+    buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   triggers {
     cron('H 23 * * *')
