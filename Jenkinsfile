@@ -6,9 +6,6 @@ pipeline {
     skipDefaultCheckout()
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
-  triggers {
-    cron('H 23 * * *')
-  }
   stages {
     stage('Checkout') {
       steps {
